@@ -1,3 +1,4 @@
+import torch
 from transformers import T5TokenizerFast
 from torch.utils.data import Dataset
 import spacy
@@ -8,11 +9,11 @@ import random
 
 class LMDataset(Dataset):
 
-    def __init__(self, h_params: Namespace):
+    def __init__(self, h_params: Namespace, file_path):
         self.h_params = h_params
         self.sentences = []
         self.sentences: List[str]
-        self.read_file()
+        self.read_file(file_path)
 
         self.special_token = set()
         self.tokenizer = T5TokenizerFast.from_pretrained(self.h_params.T5_model_name)
@@ -21,8 +22,7 @@ class LMDataset(Dataset):
         self.preprocess()
         pass
 
-    def read_file(self):
-        file_path = self.h_params.data_path
+    def read_file(self, file_path):
         with open(file_path, "r") as f:
             for row in f:
                 row = row.strip().replace("\n", "")
@@ -50,15 +50,17 @@ class LMDataset(Dataset):
 
     def __getitem__(self, item):
         ids, masks = self.ids[item], self.masks[item]
+        labels = torch.zeros_like(ids, dtype=torch.long) - 100
+        counter = 0
         for idx, word in enumerate(ids):
             if int(ids[idx]) == self.tokenizer.pad_token_id:
                 break
             p = random.random()
-            counter = 0
             if p < self.h_params.dropout_prob:
+                labels[counter] = int(ids[idx])
                 ids[idx] = self.tokenizer.get_vocab()[f"<extra_id_{counter}>"]
                 counter += 1
-        return ids, masks
+        return ids, masks, labels
 
     def __len__(self):
         return len(self.sentences)
@@ -66,7 +68,8 @@ class LMDataset(Dataset):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--data_path', type=str, default="data_sample.txt")
+        parser.add_argument('--train_path', type=str, default="data_sample.txt")
+        parser.add_argument('--dev_path', type=str, default="data_sample.txt")
         parser.add_argument('--T5_model_name', type=str, default='t5-base')
         parser.add_argument("--max_seq_length", type=int, default=128)
         parser.add_argument("--batch_size", type=int, default=8)
@@ -77,5 +80,6 @@ class LMDataset(Dataset):
         parser.add_argument("--num_train_epochs", type=int, default=1)
         parser.add_argument("--warmup_steps", type=int, default=0)
         parser.add_argument("--output_dir", type=str, default="results/baseline")
+        parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
         parser.add_argument("--gpus", type=int, default=0)
         return parser
