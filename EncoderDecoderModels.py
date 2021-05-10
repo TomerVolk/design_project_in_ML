@@ -79,10 +79,10 @@ class Decoder(nn.Module):
         output, inner_state = self.decoder_call(output, inner_state)
         return output, inner_state
 
-    def forward(self, encoder_outputs, inner_state, target_tensor, force_learning=True):
+    def forward(self, encoder_outputs, len, inner_state, target_tensor, force_learning=True):
         outputs = None
         in_word = torch.tensor([[EOS_token]], device=self.device)
-        for i in range(target_tensor.size(0)):
+        for i in range(len):
             output, inner_state = self.cell_forward(output=in_word, encoder_outputs=encoder_outputs,
                                                     inner_state=inner_state)
             output = self.head(output)
@@ -114,18 +114,27 @@ class EncoderDecoder(nn.Module):
         self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
                                hidden_size=hidden_dim, dropout=dropout, linear_dim=linear_dim)
 
-    def forward(self, sen, target_tensor, force_learning=True):
+    def forward(self, sen, target_tensor, len=None, force_learning=True):
         encoded_sen, inner_state = self.encoder(sen)
-        output = self.decoder(encoded_sen, inner_state, target_tensor, force_learning)
+        print(encoded_sen.shape)
+        pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim))
+        print(pad.shape)
+        encoded_sen = torch.cat((encoded_sen, pad), dim=1)
+        print(encoded_sen.shape)
+        if len is None:
+            len = target_tensor.size(0)
+        print(len)
+        output = self.decoder(encoded_sen, len, inner_state, target_tensor, force_learning)
         return output
 
 
 model = EncoderDecoder(vocab_size=100, max_len=50)
 model.to(device)
-in_tensor = torch.tensor([2, 3, 4, 5])
-target_tensor = torch.tensor([4, 5, 6, 7])
-padding = torch.tensor([10]*(50-len(in_tensor)))
-in_tensor = torch.cat((in_tensor, padding))
-out = model(in_tensor, target_tensor, False)
+in_tensor = torch.tensor([0, 2, 3, 4, 5, 1])
+target_tensor = torch.tensor([0, 4, 5, 6, 7, 1])
+# padding = torch.tensor([99]*(50-len(in_tensor)))
+# in_tensor = torch.cat((in_tensor, padding))
+out = model(in_tensor, target_tensor, force_learning=True)
 print(out)
 print(out.shape)
+print(sum(p.numel() for p in model.parameters() if p.requires_grad))
