@@ -9,6 +9,7 @@ import pandas as pd
 import shutil
 from utils import set_seed
 import time
+from clean_file_pairs import clean_file
 
 
 def get_last_version(folder):
@@ -55,5 +56,7 @@ def do_single_run(seed=42, folder_name=""):
 
 
 if __name__ == '__main__':
+    clean_file("datasets/full_dataset.csv", "datasets/clean_dataset.csv")
+    exit(12)
     os.environ['KMP_WARNINGS'] = 'off'
     do_single_run(folder_name="testing")

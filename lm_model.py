@@ -2,15 +2,14 @@ import logging
 import torch
 from pytorch_lightning import LightningModule, Callback
 from torch import Tensor, LongTensor
-from torch.nn import CrossEntropyLoss, Linear
-from torch.utils.data import DataLoader, TensorDataset
+from torch.nn import CrossEntropyLoss
+from torch.utils.data import DataLoader
 from argparse import Namespace
-from typing import List, Any, Dict, Tuple
+from typing import List, Any, Dict
 from transformers import (
     AdamW,
     BatchEncoding,
     T5ForConditionalGeneration,
-    T5TokenizerFast,
     get_linear_schedule_with_warmup
 )
 from lm_dataset import LMDataset
