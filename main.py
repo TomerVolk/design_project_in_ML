@@ -1,15 +1,11 @@
-import pickle
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from argparse import ArgumentParser
 from lm_model import T5ForSentenceClassification, LoggingCallback
+from dataset_utils import BaseDataset
 from lm_dataset import LMDataset
+from sentence_pairs_dataset import PairsDS
 import os
-import pandas as pd
-import shutil
 from utils import set_seed
-import time
-from clean_file_pairs import clean_file
 
 
 def get_last_version(folder):
@@ -26,7 +22,7 @@ def get_last_version(folder):
 
 def get_trainer(folder_name):
     parser = ArgumentParser()
-    parser = LMDataset.add_model_specific_args(parser)
+    parser = BaseDataset.add_model_specific_args(parser)
     # parser = Trainer.add_argparse_args(parser)
     h_params = parser.parse_args()
 
@@ -56,7 +52,5 @@ def do_single_run(seed=42, folder_name=""):
 
 
 if __name__ == '__main__':
-    clean_file("datasets/full_dataset.csv", "datasets/clean_dataset.csv")
-    exit(12)
     os.environ['KMP_WARNINGS'] = 'off'
     do_single_run(folder_name="testing")
