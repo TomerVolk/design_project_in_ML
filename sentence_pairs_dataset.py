@@ -18,8 +18,6 @@ class PairsDS(BaseDataset):
             for idx, row in enumerate(csv_reader):
                 if idx == 0:
                     continue
-                if idx == 5:
-                    break
                 winner, loser, _ = row
                 self.winners.append(winner)
                 self.losers.append(loser)

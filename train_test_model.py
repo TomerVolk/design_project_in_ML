@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import torch.optim as optim
 from EncoderDecoderModels import EncoderDecoder, device
 import random
+from argparse import ArgumentParser
 from sentence_pairs_dataset import PairsDS
 
 
@@ -69,6 +70,10 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
 
 
 if __name__ == '__main__':
-    pds = PairsDS()
+    parser = ArgumentParser()
+    parser = PairsDS.add_model_specific_args(parser)
+    # parser = Trainer.add_argparse_args(parser)
+    h_params = parser.parse_args()
+    pds = PairsDS(h_params, "datasets/clean_dataset.csv")
 
 

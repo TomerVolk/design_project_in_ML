@@ -25,6 +25,7 @@ def get_trainer(folder_name):
     parser = BaseDataset.add_model_specific_args(parser)
     # parser = Trainer.add_argparse_args(parser)
     h_params = parser.parse_args()
+    ds = PairsDS(h_params, h_params.train_path)
 
     trainer_params = {"gpus": h_params.gpus, "num_sanity_val_steps": 5, "min_epochs": h_params.num_train_epochs,
                       "max_epochs": h_params.num_train_epochs, "callbacks": [LoggingCallback()],

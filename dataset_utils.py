@@ -32,11 +32,24 @@ class BaseDataset(Dataset):
                 sen = sen.replace(str(ent), str(label))
             sentences[idx] = sen
         self.tokenizer.add_tokens(self.special_token)
-        tokenized_sen = self.tokenizer.batch_encode_plus(sentences, max_length=self.h_params.max_seq_length,
-                                                         padding="max_length",
-                                                         return_tensors="pt", truncation=True, add_special_tokens=True)
-        ids = tokenized_sen.data["input_ids"]
-        masks = tokenized_sen.data["attention_mask"]
+        if not add_bos:
+            tokenized_sen = self.tokenizer.batch_encode_plus(sentences, max_length=self.h_params.max_seq_length,
+                                                             padding="do_not_pad",
+                                                             return_tensors="pt", truncation=True,
+                                                             add_special_tokens=True)
+            ids = tokenized_sen.data["input_ids"]
+            masks = tokenized_sen.data["attention_mask"]
+            return ids, masks
+        ids, masks = [], []
+        for sen in sentences:
+            tokenized_sen = self.tokenizer.batch_encode_plus([sen], max_length=self.h_params.max_seq_length,
+                                                             padding="do_not_pad",
+                                                             return_tensors="pt", truncation=True,
+                                                             add_special_tokens=True)
+            cur_id = tokenized_sen.data["input_ids"]
+            cur_mask = tokenized_sen.data["attention_mask"]
+            ids.append(cur_id)
+            masks.append(cur_mask)
         return ids, masks
 
     def __getitem__(self, item):
@@ -48,8 +61,8 @@ class BaseDataset(Dataset):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--train_path', type=str, default="data_sample.txt")
-        parser.add_argument('--dev_path', type=str, default="data_sample.txt")
+        parser.add_argument('--train_path', type=str, default="datasets/clean_dataset.csv")
+        parser.add_argument('--dev_path', type=str, default="datasets/clean_dataset.csv")
         parser.add_argument('--T5_model_name', type=str, default='t5-base')
         parser.add_argument("--max_seq_length", type=int, default=128)
         parser.add_argument("--batch_size", type=int, default=8)
