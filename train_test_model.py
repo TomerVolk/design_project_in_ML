@@ -1,16 +1,11 @@
-import torch.nn.functional as F
-import torch.utils.data as dt
 import torch
 import torch.nn as nn
 from tqdm import tqdm as tqdm
 from matplotlib import pyplot as plt
-from copy import deepcopy
-from datetime import date
-import os
 import torch.optim as optim
 from EncoderDecoderModels import EncoderDecoder, device
 import random
-import matplotlib.pyplot as plt
+from sentence_pairs_dataset import PairsDS
 
 
 def print_graphs(loss_list, test_loss_list=None):
@@ -73,5 +68,7 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
     return model, loss_list, test_loss_list
 
 
+if __name__ == '__main__':
+    pds = PairsDS()
 
 
