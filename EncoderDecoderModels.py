@@ -4,9 +4,9 @@ import torchvision.models as models
 import torch.nn.functional as F
 import torch.utils
 
-SOS_token = 0
+SOS_token = 32100
 EOS_token = 1
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cuda:0"
 print(device)
 
 
@@ -65,7 +65,7 @@ class Decoder(nn.Module):
         )
 
     def cell_forward(self, output, encoder_outputs, inner_state):
-        embedded = self.embedding_layer(output).view(1, 1, -1)
+        embedded = self.embedding_layer(output.to(device)).view(1, 1, -1)
         embedded = self.dropout_layer(embedded)
         hidden = inner_state[0]
         attn_weights = F.softmax(
@@ -81,7 +81,7 @@ class Decoder(nn.Module):
 
     def forward(self, encoder_outputs, len, inner_state, target_tensor, force_learning=True):
         outputs = None
-        in_word = torch.tensor([[EOS_token]], device=self.device)
+        in_word = torch.tensor([[SOS_token]], device=self.device)
         for i in range(len):
             output, inner_state = self.cell_forward(output=in_word, encoder_outputs=encoder_outputs,
                                                     inner_state=inner_state)
@@ -116,25 +116,101 @@ class EncoderDecoder(nn.Module):
 
     def forward(self, sen, target_tensor, len=None, force_learning=True):
         encoded_sen, inner_state = self.encoder(sen)
-        print(encoded_sen.shape)
-        pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim))
-        print(pad.shape)
+        pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
         encoded_sen = torch.cat((encoded_sen, pad), dim=1)
-        print(encoded_sen.shape)
         if len is None:
             len = target_tensor.size(0)
-        print(len)
         output = self.decoder(encoded_sen, len, inner_state, target_tensor, force_learning)
         return output
 
 
-model = EncoderDecoder(vocab_size=100, max_len=50)
-model.to(device)
-in_tensor = torch.tensor([0, 2, 3, 4, 5, 1])
-target_tensor = torch.tensor([0, 4, 5, 6, 7, 1])
-# padding = torch.tensor([99]*(50-len(in_tensor)))
-# in_tensor = torch.cat((in_tensor, padding))
-out = model(in_tensor, target_tensor, force_learning=True)
-print(out)
-print(out.shape)
-print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+# model = EncoderDecoder(vocab_size=100, max_len=50)
+# model.to(device)
+# in_tensor = torch.tensor([0, 2, 3, 4, 5, 1])
+# target_tensor = torch.tensor([0, 4, 5, 6, 7, 1])
+# # padding = torch.tensor([99]*(50-len(in_tensor)))
+# # in_tensor = torch.cat((in_tensor, padding))
+# out = model(in_tensor, target_tensor, force_learning=True)
+# print(out)
+# print(out.shape)
+# print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+
+
+####################################################################
+####################################################################
+####################################################################
+
+class EncoderRNN(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super(EncoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.embedding = nn.Embedding(input_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+
+    def forward(self, input, hidden):
+        embedded = self.embedding(input).view(1, 1, -1)
+        output = embedded
+        output, hidden = self.gru(output, hidden)
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, 1, self.hidden_size, device=device)
+
+
+class AttnDecoderRNN(nn.Module):
+    def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=128):
+        super(AttnDecoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.dropout_p = dropout_p
+        self.max_length = max_length
+
+        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
+        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+        self.out = nn.Linear(self.hidden_size, self.output_size)
+
+    def forward(self, input, hidden, encoder_outputs):
+        embedded = self.embedding(input).view(1, 1, -1)
+        embedded = self.dropout(embedded)
+
+        attn_weights = F.softmax(
+            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
+        attn_applied = torch.bmm(attn_weights.unsqueeze(0),
+                                 encoder_outputs.unsqueeze(0))
+
+        output = torch.cat((embedded[0], attn_applied[0]), 1)
+        output = self.attn_combine(output).unsqueeze(0)
+
+        output = F.relu(output)
+        output, hidden = self.gru(output, hidden)
+
+        output = F.log_softmax(self.out(output[0]), dim=1)
+        return output, hidden, attn_weights
+
+    def initHidden(self):
+        return torch.zeros(1, 1, self.hidden_size, device=device)
+
+
+class DecoderRNN(nn.Module):
+    def __init__(self, hidden_size, output_size):
+        super(DecoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.embedding = nn.Embedding(output_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+        self.out = nn.Linear(hidden_size, output_size)
+        self.softmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, input, hidden):
+        output = self.embedding(input).view(1, 1, -1)
+        output = F.relu(output)
+        output, hidden = self.gru(output, hidden)
+        output = self.softmax(self.out(output[0]))
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, 1, self.hidden_size, device=device)
