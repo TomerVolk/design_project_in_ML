@@ -18,20 +18,23 @@ class BaseDataset(Dataset):
 
     def preprocess(self, sentences, add_bos):
         nlp = spacy.load("en_core_web_sm")
+        added_tokens = []
         for idx, sen in enumerate(sentences):
             sen: str
             if add_bos:
                 sen = "<BOS>" + sen
                 if "<BOS>" not in self.special_token:
+                    added_tokens.append("<BOS>")
                     self.special_token.append("<BOS>")
             entities = nlp(sen).ents
             for ent in entities:
                 label = f"<{ent.label_}>"
                 if label not in self.special_token:
+                    added_tokens.append(label)
                     self.special_token.append(label)
                 sen = sen.replace(str(ent), str(label))
             sentences[idx] = sen
-        self.tokenizer.add_tokens(self.special_token)
+        self.tokenizer.add_tokens(added_tokens)
         if not add_bos:
             tokenized_sen = self.tokenizer.batch_encode_plus(sentences, max_length=self.h_params.max_seq_length,
                                                              padding="do_not_pad",
