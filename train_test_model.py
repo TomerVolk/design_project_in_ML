@@ -191,7 +191,7 @@ def trainIters(train_dataloader, encoder, decoder, epochs, print_every=1, plot_e
                 f.write(f"epoch: {epoch}\n")
                 f.write(f"loss: {print_loss_avg}\n")
             with torch.no_grad():
-                for i in range(3):
+                for i in [0, 4000, 7000]:
                     print_in_tensor, _, print_tar_tensor, _ = train_dataloader.dataset.__getitem__(i)
                     input_tensor = print_in_tensor.squeeze(0).squeeze(0)
                     input_length = print_in_tensor.squeeze(0).squeeze(0).size(0)
