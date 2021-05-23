@@ -240,7 +240,7 @@ if __name__ == '__main__':
     parser = PairsDS.add_model_specific_args(parser)
     # parser = Trainer.add_argparse_args(parser)
     h_params = parser.parse_args()
-    pds = PairsDS(h_params, "datasets/clean_dataset.csv")
+    pds = PairsDS(h_params, "datasets/over_1000.csv")
     torch.save(pds, "pairs_dataset.pt")
     # pds = torch.load("pairs_dataset.pt")
     # pds.tokenizer.decode()
@@ -253,6 +253,3 @@ if __name__ == '__main__':
     # decoder = AttnDecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
     decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
     trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
-
-######
-
