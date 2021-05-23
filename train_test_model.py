@@ -105,6 +105,7 @@ def showPlot(points):
     # this locator puts ticks at regular intervals
     loc = ticker.MultipleLocator(base=0.2)
     ax.yaxis.set_major_locator(loc)
+    plt.savefig("loss.png")
     plt.plot(points)
 
 
@@ -182,36 +183,49 @@ def trainIters(train_dataloader, encoder, decoder, epochs, print_every=1, plot_e
             i += 1
 
         if epoch % print_every == 0:
-            print(epoch)
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
+            print(epoch)
             print(print_loss_avg)
+            with open("results.txt", "a") as f:
+                f.write(f"epoch: {epoch}\n")
+                f.write(f"loss: {print_loss_avg}\n")
             with torch.no_grad():
-                print_in_tensor, _, print_tar_tensor, _ = train_dataloader.dataset.__getitem__(5)
-                input_tensor = print_in_tensor.squeeze(0).squeeze(0)
-                input_length = print_in_tensor.squeeze(0).squeeze(0).size(0)
-                target_length = print_tar_tensor.squeeze(0).squeeze(0).size(0)
-                encoder_outputs = torch.zeros(128, encoder.hidden_size, device=device)
-                encoder_hidden = encoder.initHidden()
-                for ei in range(input_length):
-                    encoder_output, encoder_hidden = encoder(
-                        input_tensor[ei].to(device), encoder_hidden)
-                    encoder_outputs[ei] = encoder_output[0, 0]
-                decoder_input = torch.tensor([[SOS_token]], device=device)
-                decoder_hidden = encoder_hidden
-                pred_ids = []
-                for di in range(target_length):
-                    # decoder_output, decoder_hidden, decoder_attention = decoder(
-                    #     decoder_input.to(device), decoder_hidden, encoder_outputs)
-                    decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
-                    topv, topi = decoder_output.topk(1)
-                    decoder_input = topi.squeeze().detach()  # detach from history as input
-                    pred_ids.append(decoder_input)
-                    if decoder_input.item() == EOS_token:
-                        break
-                print(train_dataloader.dataset.tokenizer.decode(input_tensor))
-                print(train_dataloader.dataset.tokenizer.decode(print_tar_tensor.squeeze(0).squeeze(0)))
-                print(train_dataloader.dataset.tokenizer.decode(pred_ids))
+                for i in range(3):
+                    print_in_tensor, _, print_tar_tensor, _ = train_dataloader.dataset.__getitem__(i)
+                    input_tensor = print_in_tensor.squeeze(0).squeeze(0)
+                    input_length = print_in_tensor.squeeze(0).squeeze(0).size(0)
+                    target_length = print_tar_tensor.squeeze(0).squeeze(0).size(0)
+                    encoder_outputs = torch.zeros(128, encoder.hidden_size, device=device)
+                    encoder_hidden = encoder.initHidden()
+                    for ei in range(input_length):
+                        encoder_output, encoder_hidden = encoder(
+                            input_tensor[ei].to(device), encoder_hidden)
+                        encoder_outputs[ei] = encoder_output[0, 0]
+                    decoder_input = torch.tensor([[SOS_token]], device=device)
+                    decoder_hidden = encoder_hidden
+                    pred_ids = []
+                    for di in range(target_length):
+                        # decoder_output, decoder_hidden, decoder_attention = decoder(
+                        #     decoder_input.to(device), decoder_hidden, encoder_outputs)
+                        decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+                        topv, topi = decoder_output.topk(1)
+                        decoder_input = topi.squeeze().detach()  # detach from history as input
+                        pred_ids.append(decoder_input)
+                        if decoder_input.item() == EOS_token:
+                            break
+                    print(train_dataloader.dataset.tokenizer.decode(input_tensor))
+                    print(train_dataloader.dataset.tokenizer.decode(print_tar_tensor.squeeze(0).squeeze(0)))
+                    print(train_dataloader.dataset.tokenizer.decode(pred_ids))
+                    print("\n")
+                    with open("results.txt", "a") as f:
+                        f.write(f"input: {train_dataloader.dataset.tokenizer.decode(input_tensor)}\n")
+                        f.write(f"target: {train_dataloader.dataset.tokenizer.decode(print_tar_tensor.squeeze(0).squeeze(0))}\n")
+                        f.write(f"output: {train_dataloader.dataset.tokenizer.decode(pred_ids)}\n")
+                        f.write("\n")
+                print("######################")
+                with open("results.txt", "a") as f:
+                    f.write("##########################\n\n")
 
             if epoch % plot_every == 0:
                 plot_loss_avg = plot_loss_total / plot_every
