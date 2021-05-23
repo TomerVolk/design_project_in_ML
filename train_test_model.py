@@ -254,5 +254,5 @@ if __name__ == '__main__':
     decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
     trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
 
-###
+#####
 
