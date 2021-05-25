@@ -191,7 +191,7 @@ def trainIters(train_dataloader, encoder, decoder, epochs, print_every=1, plot_e
                 f.write(f"epoch: {epoch}\n")
                 f.write(f"loss: {print_loss_avg}\n")
             with torch.no_grad():
-                for i in [0, 4000, 7000]:
+                for i in [0, 300, 700]:
                     print_in_tensor, _, print_tar_tensor, _ = train_dataloader.dataset.__getitem__(i)
                     input_tensor = print_in_tensor.squeeze(0).squeeze(0)
                     input_length = print_in_tensor.squeeze(0).squeeze(0).size(0)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     parser = PairsDS.add_model_specific_args(parser)
     # parser = Trainer.add_argparse_args(parser)
     h_params = parser.parse_args()
-    pds = PairsDS(h_params, "datasets/over_1000.csv")
+    pds = PairsDS(h_params, "datasets/single_topic.csv")
     torch.save(pds, "pairs_dataset.pt")
     # pds = torch.load("pairs_dataset.pt")
     # pds.tokenizer.decode()

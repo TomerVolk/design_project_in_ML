@@ -52,5 +52,23 @@ def select_only_over_thresh(in_path, out_path, thresh):
             csv_writer.writerow(row)
 
 
+def select_topics(topics, in_path, out_path):
+    ans = []
+    with open(in_path, newline='', encoding="UTF-8") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',', quotechar='"')
+        for idx, row in enumerate(csv_reader):
+            if idx == 0:
+                continue
+            winner, loser, topic = row
+            if topic in topics:
+                ans.append((winner, loser, topic))
+    print("Read File")
+    with open(out_path, "w", newline='', encoding="UTF-8") as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')
+        csv_writer.writerow(["Winner", "Loser", "Hyper_Topic"])
+        for row in ans:
+            csv_writer.writerow(row)
+
+
 if __name__ == '__main__':
-    select_only_over_thresh("datasets/clean_dataset.csv", "datasets/over_1000.csv", 1000)
+    select_topics(["Vegetarianism"], "datasets/over_1000.csv", "datasets/single_topic.csv")
