@@ -2,24 +2,24 @@
 <project version="4">
   <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="eyalbd12@nlp16.iem.technion.ac.il:22">
+      <paths name="DL_VM">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="file viewing NLP 16">
+      <paths name="egor@optim-srv1.iem.technion.ac.il:22">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tomervolk@so-srv1.iem.technion.ac.il:22">
+      <paths name="student@dpml2020s-0001.eastus.cloudapp.azure.com:22">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/student/project" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

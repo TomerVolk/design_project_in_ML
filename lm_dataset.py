@@ -19,6 +19,8 @@ class LMDataset(BaseDataset):
 
     def __getitem__(self, item):
         ids, masks = self.ids[item], self.masks[item]
+        ids = ids[0]
+        masks = masks[0]
         labels = torch.zeros_like(ids, dtype=torch.long) - 100
         counter = 0
         for idx, word in enumerate(ids):
