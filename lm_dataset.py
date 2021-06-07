@@ -4,7 +4,6 @@ import random
 from dataset_utils import BaseDataset
 
 
-
 class LMDataset(BaseDataset):
 
     def __init__(self, h_params: Namespace, file_path):

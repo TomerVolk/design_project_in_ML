@@ -35,14 +35,6 @@ class BaseDataset(Dataset):
                 sen = sen.replace(str(ent), str(label))
             sentences[idx] = sen
         self.tokenizer.add_tokens(added_tokens)
-        if not add_bos:
-            tokenized_sen = self.tokenizer.batch_encode_plus(sentences, max_length=self.h_params.max_seq_length,
-                                                             padding="do_not_pad",
-                                                             return_tensors="pt", truncation=True,
-                                                             add_special_tokens=True)
-            ids = tokenized_sen.data["input_ids"]
-            masks = tokenized_sen.data["attention_mask"]
-            return ids, masks
         ids, masks = [], []
         for sen in sentences:
             tokenized_sen = self.tokenizer.batch_encode_plus([sen], max_length=self.h_params.max_seq_length,
