@@ -54,7 +54,7 @@ def eval_net(model, test_dataloader):
     return printable_loss/(len(test_dataloader)-failed), acc / counter
 
 
-def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.005, force_training_prob=0.5,
+def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0005, force_training_prob=0.5,
               print_every=2, ags=50, choose_by_loss=True):
     model.to(device)
     loss = nn.NLLLoss()
@@ -86,26 +86,27 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             if i % ags == 0:
                 ls.backward()
                 optimizer.step()
+                optimizer.zero_grad()
             i += 1
         printable_loss /= (len(train_dataloader) - failed)
         loss_list.append(printable_loss)
         if epoch % print_every == 0:
             print(epoch)
             # torch.save(model, "first_model.pt")
-            # i = random.randint(1, 200)
-            # with torch.no_grad():
-            #     sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(i)
-            #     sen_to_print = sen_to_print.squeeze(0).squeeze(0)
-            #     target_sen_to_print = target_sen_to_print.squeeze(0).squeeze(0)
-            #     pred = model(sen_to_print, target_sen_to_print, force_learning=False)
-            #     pred_ids = []
-            #     for word in pred[0]:
-            #         topv, topi = word.topk(1)
-            #         in_word = topi.squeeze().detach().item()
-            #         pred_ids.append(in_word)
-            # print(train_dataloader.dataset.tokenizer.decode(target_sen_to_print))
-            # print(train_dataloader.dataset.tokenizer.decode(sen_to_print))
-            # print(train_dataloader.dataset.tokenizer.decode(pred_ids))
+            i = random.randint(1, 200)
+            with torch.no_grad():
+                sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(i)
+                sen_to_print = sen_to_print.squeeze(0).squeeze(0)
+                target_sen_to_print = target_sen_to_print.squeeze(0).squeeze(0)
+                pred = model(sen_to_print, target_sen_to_print, force_learning=False)
+                pred_ids = []
+                for word in pred[0]:
+                    topv, topi = word.topk(1)
+                    in_word = topi.squeeze().detach().item()
+                    pred_ids.append(in_word)
+            print(f"Output: {target_sen_to_print}")
+            # print(f"Input: {train_dataloader.dataset.tokenizer.decode(sen_to_print)}")
+            print(f"Predicted: {pred_ids}")
             print(f"train loss is {printable_loss}")
         if test_dataloader is not None:
             model.train(False)
@@ -154,8 +155,3 @@ if __name__ == '__main__':
     val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
     model = EncoderDecoder(vocab_size=len(lds.tokenizer.get_vocab()), max_len=128)
     model = train_net(model, train_dataloader, test_dataloader=val_dataloader)
-    # # torch.save(model, "first_model.pt")
-    # encoder = EncoderRNN(input_size=len(pds.tokenizer.get_vocab()), hidden_size=256)
-    # # decoder = AttnDecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
-    # decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
-    # trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
