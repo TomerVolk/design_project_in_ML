@@ -145,11 +145,12 @@ def showPlot(points):
     plt.savefig("loss.png")
     plt.plot(points)
 
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser = PairsDS.add_model_specific_args(parser)
     h_params = parser.parse_args()
-    lds = LMDataset(h_params, "datasets/full_lm_data.csv")
+    lds = LMDataset(h_params, "datasets/full_sentencess.csv")
     train_lds, val_lds = random_split(lds, [len(lds)-int(0.2*len(lds)), int(0.2*len(lds))])
     train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
     val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
