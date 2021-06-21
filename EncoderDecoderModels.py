@@ -6,7 +6,8 @@ import torch.utils
 
 SOS_token = 32100
 EOS_token = 1
-device = "cuda:0"
+# device = "cuda:0"
+device = 'cpu'
 print(device)
 
 

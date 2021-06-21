@@ -22,7 +22,7 @@ def remove_punctuation(sen: str) -> str:
 
 class BaseDataset(Dataset):
 
-    def __init__(self, h_params: Namespace, file_path, base_dataset: BaseDataset = None):
+    def __init__(self, h_params: Namespace, file_path, base_dataset=None):
         self.h_params = h_params
         self.is_test = False
         if base_dataset is not None:

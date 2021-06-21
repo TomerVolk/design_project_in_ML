@@ -6,7 +6,7 @@ from dataset_utils import BaseDataset
 
 class LMDataset(BaseDataset):
 
-    def __init__(self, h_params: Namespace, file_path, base_dataset: LMDataset = None):
+    def __init__(self, h_params: Namespace, file_path, base_dataset=None):
         self.sentences = []
         super(LMDataset, self).__init__(h_params, file_path, base_dataset)
         self.sentences = self.sentences[:3]

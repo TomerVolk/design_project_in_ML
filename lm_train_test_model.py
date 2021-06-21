@@ -179,5 +179,7 @@ if __name__ == '__main__':
     #     print(f'masks: {masks}')
     #     print(f'labels: {labels}')
     # print(len(train_dataloader), len(val_dataloader))
+    print(len(lds.tokenizer.get_vocab()))
+    print(lds.is_test)
     model = EncoderDecoder(vocab_size=len(lds.tokenizer.get_vocab()), max_len=128)
     model = train_net(model, full_dataloader, test_dataloader=None)
