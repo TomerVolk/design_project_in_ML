@@ -9,7 +9,7 @@ class LMDataset(BaseDataset):
     def __init__(self, h_params: Namespace, file_path, base_dataset=None):
         self.sentences = []
         super(LMDataset, self).__init__(h_params, file_path, base_dataset)
-        self.sentences = self.sentences[:3]
+        self.sentences = self.sentences[:10]
         self.ids, self.masks = self.preprocess(self.sentences, False)
 
     def read_file(self, file_path):
