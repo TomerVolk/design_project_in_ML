@@ -4,14 +4,34 @@ import spacy
 from argparse import Namespace, ArgumentParser
 
 
+def remove_punctuation(sen: str) -> str:
+    # define punctuation
+    punctuations = '''!()-[]{};:'"\\,<>./?@#$%^&*_~'''
+
+    # To take input from the user
+    # my_str = input("Enter a string: ")
+
+    # remove punctuation from the string
+    no_punct = ""
+    for char in sen:
+        if char not in punctuations:
+            no_punct = no_punct + char
+
+    return no_punct
+
+
 class BaseDataset(Dataset):
 
-    def __init__(self, h_params: Namespace, file_path):
+    def __init__(self, h_params: Namespace, file_path, base_dataset: BaseDataset = None):
         self.h_params = h_params
+        self.is_test = False
+        if base_dataset is not None:
+            self.is_test = True
+            self.tokenizer = base_dataset.tokenizer
+        else:
+            self.tokenizer = T5TokenizerFast.from_pretrained(self.h_params.T5_model_name)
         self.read_file(file_path)
-
         self.special_token = []
-        self.tokenizer = T5TokenizerFast.from_pretrained(self.h_params.T5_model_name)
 
     def read_file(self, file_path):
         raise NotImplementedError
@@ -21,6 +41,7 @@ class BaseDataset(Dataset):
         added_tokens = []
         for idx, sen in enumerate(sentences):
             sen: str
+            sen = remove_punctuation(sen)
             if add_bos:
                 sen = "<BOS>" + sen
                 if "<BOS>" not in self.special_token:
@@ -29,7 +50,7 @@ class BaseDataset(Dataset):
             entities = nlp(sen).ents
             for ent in entities:
                 label = f"<{ent.label_}>"
-                if label not in self.special_token:
+                if label not in self.special_token and not self.is_test:
                     added_tokens.append(label)
                     self.special_token.append(label)
                 sen = sen.replace(str(ent), str(label))
