@@ -19,7 +19,7 @@ class LMDataset(BaseDataset):
 
     def __getitem__(self, item):
         ids, masks = self.ids[item], self.masks[item]
-        ids, masks = ids.copy(), masks.copy()
+        ids, masks = ids.clone(), masks.clone()
         ids = ids[0]
         masks = masks[0]
         labels = torch.zeros_like(ids, dtype=torch.long) - 100

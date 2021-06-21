@@ -47,15 +47,16 @@ def eval_net(model, test_dataloader):
                 for i in range(len(pad[0])):
                     pad[0][i][1] = 1
                 pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
+            pred_seq = F.log_softmax(pred_seq.squeeze(0))
             acc += ((torch.argmax(pred_seq.cpu(), dim=-1)[0] == target_seq).numpy().sum())
             counter += len(target_seq)
-            ls = loss(F.log_softmax(pred_seq.squeeze(0)), target_seq.to(device))
+            ls = loss(pred_seq, target_seq.to(device))
             printable_loss += ls.item()
     return printable_loss/(len(test_dataloader)-failed), acc / counter
 
 
-def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0005, force_training_prob=0.5,
-              print_every=2, ags=50, choose_by_loss=True):
+def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0001, force_training_prob=0.5,
+              print_every=1, ags=1, choose_by_loss=True):
     model.to(device)
     loss = nn.NLLLoss()
     loss_list = []
@@ -68,6 +69,8 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
         i = 0
         failed = 0
         for input_seq, _, target_seq in tqdm(train_dataloader, total=len(train_dataloader)):
+            # print(f'ids, input :{input_seq}')
+            # print(f'labels, target: {target_seq}')
             p = True if random.random() > force_training_prob else 0
             target_seq = target_seq.squeeze(0).squeeze(0)
             target_seq = target_seq[target_seq != -100]
@@ -78,9 +81,10 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             # print(f'Traind: {pred_seq.shape}', target_seq.shape)
             if pred_seq.size(1) != len(target_seq):
                 pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
-                for i in range(len(pad[0])):
-                    pad[0][i][1] = 1
+                for j in range(len(pad[0])):
+                    pad[0][j][1] = 1
                 pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
+            # print(f'predicted :{torch.argmax(F.log_softmax(pred_seq.squeeze(0)),1)}')
             ls = loss(F.log_softmax(pred_seq.squeeze(0)), target_seq.to(device))
             printable_loss += ls.item()
             if i % ags == 0:
@@ -92,22 +96,34 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
         loss_list.append(printable_loss)
         if epoch % print_every == 0:
             print(epoch)
-            # torch.save(model, "first_model.pt")
-            i = random.randint(1, 200)
+            model.train(False)
             with torch.no_grad():
-                sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(i)
-                sen_to_print = sen_to_print.squeeze(0).squeeze(0)
-                target_sen_to_print = target_sen_to_print.squeeze(0).squeeze(0)
-                pred = model(sen_to_print, target_sen_to_print, force_learning=False)
-                pred_ids = []
-                for word in pred[0]:
-                    topv, topi = word.topk(1)
-                    in_word = topi.squeeze().detach().item()
-                    pred_ids.append(in_word)
-            print(f"Output: {target_sen_to_print}")
-            # print(f"Input: {train_dataloader.dataset.tokenizer.decode(sen_to_print)}")
-            print(f"Predicted: {pred_ids}")
-            print(f"train loss is {printable_loss}")
+                for j in range(5):
+                    sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(j)
+                    sen_to_print = sen_to_print.squeeze(0).squeeze(0)
+                    target_sen_to_print = target_sen_to_print.squeeze(0).squeeze(0)
+                    target_sen_to_print = target_sen_to_print[target_sen_to_print != -100]
+                    if torch.numel(target_sen_to_print) == 0:
+                        continue
+                    print(f'sentence ids: {sen_to_print}')
+                    print(f"Output before: {target_sen_to_print}")
+                    pred = model(sen_to_print, target_sen_to_print, force_learning=False)
+                    pred_ids = []
+                    for word in pred[0]:
+                        topv, topi = word.topk(1)
+                        in_word = topi.squeeze().detach().item()
+                        pred_ids.append(in_word)
+                    print(f"Output after: {target_sen_to_print}")
+                    print(f"Predicted: {pred_ids}")
+                    with open("./results/lm_train.txt", "a") as f:
+                        f.write(f"Output: {target_sen_to_print}\n")
+                        f.write(f"Predicted: {pred_ids}\n")
+                        f.write("\n")
+                print(f"epoch: {epoch} \t train loss is {printable_loss}")
+                with open("./results/lm_train.txt", "a") as f:
+                    f.write(f"epoch: {epoch} \t train loss is {printable_loss}")
+                    f.write("\n")
+            model.train(True)
         if test_dataloader is not None:
             model.train(False)
             test_loss, test_acc = eval_net(model, test_dataloader)
@@ -122,6 +138,9 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             # print(f'Test acc: {test_acc}')
             if epoch % print_every == 0:
                 print(f"test loss is {test_loss}, Test acc: {test_acc}")
+                with open("./results/lm_train.txt", "a") as f:
+                    f.write(f"test loss is {test_loss}, Test acc: {test_acc}")
+                    f.write("\n")
             test_loss_list.append(test_loss)
             model.train(True)
     if test_dataloader is not None:
@@ -150,9 +169,15 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser = PairsDS.add_model_specific_args(parser)
     h_params = parser.parse_args()
-    lds = LMDataset(h_params, "datasets/full_sentencess.csv")
-    train_lds, val_lds = random_split(lds, [len(lds)-int(0.2*len(lds)), int(0.2*len(lds))])
-    train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
-    val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
+    lds = LMDataset(h_params, "datasets/full_lm_data.csv")
+    # train_lds, val_lds = random_split(lds, [len(lds)-int(0.2*len(lds)), int(0.2*len(lds))])
+    # train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
+    # val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
+    full_dataloader = DataLoader(lds, batch_size=1, shuffle=True)
+    # for ids, masks, labels in train_dataloader:
+    #     print(f'ids: {ids}')
+    #     print(f'masks: {masks}')
+    #     print(f'labels: {labels}')
+    # print(len(train_dataloader), len(val_dataloader))
     model = EncoderDecoder(vocab_size=len(lds.tokenizer.get_vocab()), max_len=128)
-    model = train_net(model, train_dataloader, test_dataloader=val_dataloader)
+    model = train_net(model, full_dataloader, test_dataloader=None)

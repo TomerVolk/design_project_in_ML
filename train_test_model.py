@@ -10,6 +10,7 @@ import random
 from argparse import ArgumentParser
 from sentence_pairs_dataset import PairsDS
 import matplotlib.ticker as ticker
+from lm_dataset import LMDataset
 
 
 def print_graphs(loss_list, test_loss_list=None):
@@ -37,13 +38,13 @@ def eval_net(model, test_dataloader):
     return printable_loss/len(test_dataloader)
 
 
-def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.005, force_training_prob=0.5,
+def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0001, force_training_prob=0.5,
               print_every=2, ags=50):
     model.to(device)
     loss = nn.NLLLoss()
     loss_list = []
     test_loss_list = []
-    optimizer = optim.SGD(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(epochs):
         printable_loss = 0
         i = 0
@@ -53,20 +54,25 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             pred_seq = model(input_seq.squeeze(0).squeeze(0), target_seq, force_learning=p)
             if pred_seq.size(1) != len(target_seq):
                 pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
-                for i in range(len(pad[0])):
-                    pad[0][i][1] = 1
+                for j in range(len(pad[0])):
+                    pad[0][j][1] = 1
                 pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
             ls = loss(F.log_softmax(pred_seq.squeeze(0)), target_seq.to(device))
             printable_loss += ls.item()
             if i % ags == 0:
                 ls.backward()
                 optimizer.step()
+                optimizer.zero_grad()
             i += 1
         printable_loss /= len(train_dataloader)
         loss_list.append(printable_loss)
         if epoch % print_every == 0:
-            print(epoch)
-            torch.save(model, "first_model.pt")
+            print(f"epoch: {epoch}\n")
+            print(f"loss: {printable_loss}\n")
+            with open("./results/results_without_lm.txt", "a") as f:
+                f.write(f"epoch: {epoch}\n")
+                f.write(f"loss: {printable_loss}\n")
+            torch.save(model, "./trained_models/without_lm_model.pt")
             i = random.randint(1, 200)
             with torch.no_grad():
                 sen_to_print, _, target_sen_to_print, _ = train_dataloader.dataset.__getitem__(i)
@@ -82,6 +88,17 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             print(train_dataloader.dataset.tokenizer.decode(sen_to_print))
             print(train_dataloader.dataset.tokenizer.decode(pred_ids))
             print(f"train loss is {printable_loss}")
+
+            with open("./results/results_second.txt", "a") as f:
+                f.write(f"input: {train_dataloader.dataset.tokenizer.decode(sen_to_print)}\n")
+                f.write(
+                    f"target: {train_dataloader.dataset.tokenizer.decode(target_sen_to_print.squeeze(0).squeeze(0))}\n")
+                f.write(f"output: {train_dataloader.dataset.tokenizer.decode(pred_ids)}\n")
+                f.write("\n")
+        print("######################")
+        with open("./results/results_second.txt", "a") as f:
+            f.write("##########################\n\n")
+
         if test_dataloader is not None:
             test_loss = eval_net(model, test_dataloader)
             if epoch % print_every == 0:
@@ -234,6 +251,24 @@ def trainIters(train_dataloader, encoder, decoder, epochs, print_every=1, plot_e
 
     showPlot(plot_losses)
 
+# if __name__ == '__main__':
+#     parser = ArgumentParser()
+#     parser = PairsDS.add_model_specific_args(parser)
+#     # parser = Trainer.add_argparse_args(parser)
+#     h_params = parser.parse_args()
+#     pds = PairsDS(h_params, "datasets/single_topic.csv")
+#     # torch.save(pds, "pairs_dataset.pt")
+#     # pds = torch.load("pairs_dataset.pt")
+#     # pds.tokenizer.decode()
+#     pairs_dataloader = DataLoader(pds, batch_size=1, shuffle=True)
+#     # print(device)
+#     model = EncoderDecoder(vocab_size=len(pds.tokenizer.get_vocab()), max_len=128)
+#     model = train_net(model, pairs_dataloader)
+#     # torch.save(model, "first_model.pt")
+#     # encoder = EncoderRNN(input_size=len(pds.tokenizer.get_vocab()), hidden_size=256)
+#     # decoder = AttnDecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
+#     # decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
+#     # trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -241,15 +276,18 @@ if __name__ == '__main__':
     # parser = Trainer.add_argparse_args(parser)
     h_params = parser.parse_args()
     pds = PairsDS(h_params, "datasets/single_topic.csv")
-    torch.save(pds, "pairs_dataset.pt")
+    # torch.save(pds, "pairs_dataset.pt")
     # pds = torch.load("pairs_dataset.pt")
     # pds.tokenizer.decode()
     pairs_dataloader = DataLoader(pds, batch_size=1, shuffle=True)
     # print(device)
-    # model = EncoderDecoder(vocab_size=len(pds.tokenizer.get_vocab()), max_len=128)
-    # model = train_net(model, pairs_dataloader)
+    model = EncoderDecoder(vocab_size=len(pds.tokenizer.get_vocab()), max_len=128)
+    # model = torch.load('./trained_models/lm_model.pt')
+    # model.train(True)
+    model = train_net(model, pairs_dataloader)
     # torch.save(model, "first_model.pt")
-    encoder = EncoderRNN(input_size=len(pds.tokenizer.get_vocab()), hidden_size=256)
+    # encoder = EncoderRNN(input_size=len(pds.tokenizer.get_vocab()), hidden_size=256)
     # decoder = AttnDecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
-    decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
-    trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
+    # decoder = DecoderRNN(hidden_size=256, output_size=len(pds.tokenizer.get_vocab()))
+    # trainIters(pairs_dataloader, encoder.to(device), decoder.to(device), 1000)
+
