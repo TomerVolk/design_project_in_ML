@@ -136,6 +136,7 @@ class BertEncoderDecoder(nn.Module):
         self.dropout = dropout
         self.linear_dim = linear_dim
         self.encoder = DistilBertModel.from_pretrained("distilbert-base-cased")
+        self.encoder.resize_token_embeddings(vocab_size)
         self.hidden_dim = self.encoder.config.dim
         global SOS_token
         SOS_token = 101
