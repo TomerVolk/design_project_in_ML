@@ -6,8 +6,10 @@ import torch.utils
 
 SOS_token = 32100
 EOS_token = 1
+# device = "cuda:0"
 device = "cuda:0"
 print(device)
+print("exit")
 
 
 class Encoder(nn.Module):
@@ -17,10 +19,11 @@ class Encoder(nn.Module):
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.hidden_dim = hidden_dim
-        # self.dropout_p = dropout
+        self.dropout_p = dropout
         # self.dropout_layer = nn.Dropout(p=self.dropout_p)
         self.embedding_layer = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embedding_dim)
-        self.lstm = nn.LSTM(input_size=self.embedding_dim, hidden_size=self.hidden_dim, batch_first=True, num_layers=1)
+        self.lstm = nn.LSTM(input_size=self.embedding_dim, hidden_size=self.hidden_dim, batch_first=True, num_layers=1,
+                            dropout=self.dropout_p)
 
     def forward(self, sen):
         embedded_sen = self.embedding_layer(sen.to(device).unsqueeze(0))
@@ -124,7 +127,35 @@ class EncoderDecoder(nn.Module):
         return output
 
 
-# model = EncoderDecoder(vocab_size=100, max_len=50)
+class BertEncoderDecoder(nn.Module):
+    def __init__(self, vocab_size, max_len, embedding_dim=300, hidden_dim=500, dropout=0.2, linear_dim=1500):
+        super(BertEncoderDecoder, self).__init__()
+        self.vocab_size = vocab_size
+        self.max_len = max_len
+        self.embedding_dim = embedding_dim
+        self.hidden_dim = hidden_dim
+        self.dropout = dropout
+        self.linear_dim = linear_dim
+        self.encoder = Encoder(vocab_size=vocab_size, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
+                               dropout=dropout)  # TODO Bert Encoder
+        self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
+                               hidden_size=hidden_dim, dropout=dropout, linear_dim=linear_dim)
+
+    def forward(self, sen, target_tensor, len=None, force_learning=True):
+        encoded_sen, _ = self.encoder(sen)
+        pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
+        encoded_sen = torch.cat((encoded_sen, pad), dim=1)
+        if len is None:
+            len = target_tensor.size(0)
+        inner_state = self.init_inner_state()
+        output = self.decoder(encoded_sen, len, inner_state, target_tensor, force_learning)
+        return output
+
+    def init_inner_state(self):
+        return torch.zeros(1, 1, self.hidden_dim, device=device), torch.zeros(1, 1, self.hidden_dim, device=device)
+
+
+# model = BertEncoderDecoder(vocab_size=10000, max_len=50)
 # model.to(device)
 # in_tensor = torch.tensor([0, 2, 3, 4, 5, 1])
 # target_tensor = torch.tensor([0, 4, 5, 6, 7, 1])
@@ -134,6 +165,7 @@ class EncoderDecoder(nn.Module):
 # print(out)
 # print(out.shape)
 # print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+# exit(0)
 
 
 ####################################################################
@@ -155,7 +187,7 @@ class EncoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=device)
+        return torch.zeros(2, 1, self.hidden_size, device=device)
 
 
 class AttnDecoderRNN(nn.Module):
