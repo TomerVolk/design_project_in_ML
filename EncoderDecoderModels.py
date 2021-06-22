@@ -3,13 +3,13 @@ import torch.nn as nn
 import torchvision.models as models
 import torch.nn.functional as F
 import torch.utils
+from transformers import DistilBertModel
 
 SOS_token = 32100
 EOS_token = 1
 # device = "cuda:0"
-device = "cuda:0"
+device = "cpu"
 print(device)
-print("exit")
 
 
 class Encoder(nn.Module):
@@ -133,18 +133,17 @@ class BertEncoderDecoder(nn.Module):
         self.vocab_size = vocab_size
         self.max_len = max_len
         self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
         self.dropout = dropout
         self.linear_dim = linear_dim
-        self.encoder = Encoder(vocab_size=vocab_size, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
-                               dropout=dropout)  # TODO Bert Encoder
+        self.encoder = DistilBertModel.from_pretrained("distilbert-base-cased")
+        self.hidden_dim = self.encoder.config.dim
         self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
                                hidden_size=hidden_dim, dropout=dropout, linear_dim=linear_dim)
 
     def forward(self, sen, target_tensor, len=None, force_learning=True):
-        encoded_sen, _ = self.encoder(sen)
-        pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
-        encoded_sen = torch.cat((encoded_sen, pad), dim=1)
+        encoded_sen = self.encoder(sen.unsqueeze(0))[0]
+        # pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
+        # encoded_sen = torch.cat((encoded_sen, pad), dim=1)
         if len is None:
             len = target_tensor.size(0)
         inner_state = self.init_inner_state()

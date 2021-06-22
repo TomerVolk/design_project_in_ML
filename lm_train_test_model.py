@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 import torch.nn.functional as F
-from EncoderDecoderModels import EncoderDecoder, device, EncoderRNN, AttnDecoderRNN, EOS_token, SOS_token, DecoderRNN
+from EncoderDecoderModels import EncoderDecoder, device, EncoderRNN, AttnDecoderRNN, EOS_token, SOS_token, DecoderRNN,\
+    BertEncoderDecoder
 import random
 from argparse import ArgumentParser
 from sentence_pairs_dataset import PairsDS
@@ -181,5 +182,5 @@ if __name__ == '__main__':
     # print(len(train_dataloader), len(val_dataloader))
     print(len(lds.tokenizer.get_vocab()))
     print(lds.is_test)
-    model = EncoderDecoder(vocab_size=len(lds.tokenizer.get_vocab()), max_len=128)
+    model = BertEncoderDecoder(vocab_size=len(lds.tokenizer.get_vocab()), max_len=128)
     model = train_net(model, full_dataloader, test_dataloader=None)

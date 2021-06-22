@@ -24,15 +24,13 @@ class LMDataset(BaseDataset):
         ids = ids[0]
         masks = masks[0]
         labels = torch.zeros_like(ids, dtype=torch.long) - 100
-        counter = 0
         for idx, word in enumerate(ids):
             if int(ids[idx]) == self.tokenizer.pad_token_id:
                 break
             p = random.random()
             if p < self.h_params.dropout_prob:
-                labels[counter] = int(ids[idx])
-                ids[idx] = self.tokenizer.get_vocab()[f"<extra_id_{counter}>"]
-                counter += 1
+                labels[idx] = int(ids[idx])
+                ids[idx] = self.tokenizer.mask_token_id
         return ids, masks, labels
 
     def __len__(self):

@@ -1,4 +1,4 @@
-from transformers import T5TokenizerFast
+from transformers import DistilBertTokenizer
 from torch.utils.data import Dataset
 import spacy
 from argparse import Namespace, ArgumentParser
@@ -29,7 +29,7 @@ class BaseDataset(Dataset):
             self.is_test = True
             self.tokenizer = base_dataset.tokenizer
         else:
-            self.tokenizer = T5TokenizerFast.from_pretrained(self.h_params.T5_model_name)
+            self.tokenizer = DistilBertTokenizer.from_pretrained(self.h_params.T5_model_name)
         self.read_file(file_path)
         self.special_token = []
 
@@ -59,7 +59,7 @@ class BaseDataset(Dataset):
         ids, masks = [], []
         for sen in sentences:
             tokenized_sen = self.tokenizer.batch_encode_plus([sen], max_length=self.h_params.max_seq_length,
-                                                             padding="do_not_pad",
+                                                             padding="max_length",
                                                              return_tensors="pt", truncation=True,
                                                              add_special_tokens=True)
             cur_id = tokenized_sen.data["input_ids"]
@@ -79,7 +79,7 @@ class BaseDataset(Dataset):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument('--train_path', type=str, default="datasets/clean_dataset.csv")
         parser.add_argument('--dev_path', type=str, default="datasets/clean_dataset.csv")
-        parser.add_argument('--T5_model_name', type=str, default='t5-base')
+        parser.add_argument('--T5_model_name', type=str, default='distilbert-base-cased')
         parser.add_argument("--max_seq_length", type=int, default=128)
         parser.add_argument("--batch_size", type=int, default=8)
         parser.add_argument("--weight_decay", type=float, default=0.001)
