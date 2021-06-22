@@ -6,19 +6,21 @@ from dataset_utils import BaseDataset
 
 class LMDataset(BaseDataset):
 
-    def __init__(self, h_params: Namespace, file_path):
+    def __init__(self, h_params: Namespace, file_path, base_dataset=None):
         self.sentences = []
-        super(LMDataset, self).__init__(h_params, file_path)
+        super(LMDataset, self).__init__(h_params, file_path, base_dataset)
+        self.sentences = self.sentences[:10]
         self.ids, self.masks = self.preprocess(self.sentences, False)
 
     def read_file(self, file_path):
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             for row in f:
                 row = row.strip().replace("\n", "")
                 self.sentences.append(row)
 
     def __getitem__(self, item):
         ids, masks = self.ids[item], self.masks[item]
+        ids, masks = ids.clone(), masks.clone()
         ids = ids[0]
         masks = masks[0]
         labels = torch.zeros_like(ids, dtype=torch.long) - 100
