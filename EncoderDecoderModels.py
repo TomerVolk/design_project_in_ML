@@ -128,7 +128,7 @@ class EncoderDecoder(nn.Module):
 
 
 class BertEncoderDecoder(nn.Module):
-    def __init__(self, vocab_size, max_len, embedding_dim=300, hidden_dim=500, dropout=0.2, linear_dim=1500):
+    def __init__(self, vocab_size, max_len, embedding_dim=300, dropout=0.2, linear_dim=1500):
         super(BertEncoderDecoder, self).__init__()
         self.vocab_size = vocab_size
         self.max_len = max_len
@@ -137,8 +137,12 @@ class BertEncoderDecoder(nn.Module):
         self.linear_dim = linear_dim
         self.encoder = DistilBertModel.from_pretrained("distilbert-base-cased")
         self.hidden_dim = self.encoder.config.dim
+        global SOS_token
+        SOS_token = 101
+        global EOS_token
+        EOS_token = 102
         self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
-                               hidden_size=hidden_dim, dropout=dropout, linear_dim=linear_dim)
+                               hidden_size=self.hidden_dim, dropout=dropout, linear_dim=linear_dim)
 
     def forward(self, sen, target_tensor, len=None, force_learning=True):
         encoded_sen = self.encoder(sen.unsqueeze(0))[0]
