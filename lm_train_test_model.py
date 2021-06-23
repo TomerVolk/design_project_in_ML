@@ -42,6 +42,9 @@ def eval_net(model, test_dataloader):
             if torch.numel(target_seq) == 0:
                 failed += 1
                 continue
+            if device == "cuda:0":
+                target_seq = target_seq.cuda()
+                input_seq = input_seq.cuda()
             pred_seq = model(input_seq, target_seq, force_learning=False)
             if pred_seq.size(1) != len(target_seq):
                 pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
@@ -49,15 +52,15 @@ def eval_net(model, test_dataloader):
                     pad[0][i][1] = 1
                 pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
             pred_seq = F.log_softmax(pred_seq.squeeze(0))
-            acc += ((torch.argmax(pred_seq.cpu(), dim=-1)[0] == target_seq).numpy().sum())
+            acc += ((torch.argmax(pred_seq.cpu(), dim=-1)[0] == target_seq.cpu()).numpy().sum())
             counter += len(target_seq)
             ls = loss(pred_seq, target_seq.to(device))
             printable_loss += ls.item()
     return printable_loss/(len(test_dataloader)-failed), acc / counter
 
 
-def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0001, force_training_prob=0.5,
-              print_every=1, ags=1, choose_by_loss=True):
+def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.00001, force_training_prob=0.5,
+              print_every=1, ags=8, choose_by_loss=True):
     model.to(device)
     loss = nn.NLLLoss()
     loss_list = []
@@ -78,6 +81,9 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             if torch.numel(target_seq) == 0:
                 failed += 1
                 continue
+            if device == "cuda:0":
+                target_seq = target_seq.cuda()
+                input_seq = input_seq.cuda()
             pred_seq = model(input_seq.squeeze(0).squeeze(0), target_seq, force_learning=p)
             # print(f'Traind: {pred_seq.shape}', target_seq.shape)
             if pred_seq.size(1) != len(target_seq):
@@ -106,6 +112,9 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
                     target_sen_to_print = target_sen_to_print[target_sen_to_print != -100]
                     if torch.numel(target_sen_to_print) == 0:
                         continue
+                    if device == "cuda:0":
+                        sen_to_print = sen_to_print.cuda()
+                        target_sen_to_print = target_sen_to_print.cuda()
                     print(f'sentence ids: {sen_to_print}')
                     print(f"Output before: {target_sen_to_print}")
                     pred = model(sen_to_print, target_sen_to_print, force_learning=False)
@@ -171,10 +180,10 @@ if __name__ == '__main__':
     parser = PairsDS.add_model_specific_args(parser)
     h_params = parser.parse_args()
     lds = LMDataset(h_params, "datasets/full_lm_data.csv")
-    # train_lds, val_lds = random_split(lds, [len(lds)-int(0.2*len(lds)), int(0.2*len(lds))])
-    # train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
-    # val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
-    full_dataloader = DataLoader(lds, batch_size=1, shuffle=True)
+    train_lds, val_lds = random_split(lds, [len(lds)-int(0.2*len(lds)), int(0.2*len(lds))])
+    train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
+    val_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
+    # full_dataloader = DataLoader(lds, batch_size=1, shuffle=True)
     # for ids, masks, labels in train_dataloader:
     #     print(f'ids: {ids}')
     #     print(f'masks: {masks}')
@@ -183,4 +192,4 @@ if __name__ == '__main__':
     print(lds.vocab_size)
     print(lds.is_test)
     model = BertEncoderDecoder(vocab_size=lds.vocab_size, max_len=128)
-    model = train_net(model, full_dataloader, test_dataloader=None)
+    model = train_net(model, train_dataloader, test_dataloader=val_dataloader)

@@ -7,8 +7,8 @@ from transformers import DistilBertModel
 
 SOS_token = 32100
 EOS_token = 1
-# device = "cuda:0"
-device = "cpu"
+device = "cuda:0"
+# device = "cpu"
 print(device)
 
 
@@ -136,6 +136,7 @@ class BertEncoderDecoder(nn.Module):
         self.dropout = dropout
         self.linear_dim = linear_dim
         self.encoder = DistilBertModel.from_pretrained("distilbert-base-cased")
+        self.encoder.to(device)
         self.encoder.resize_token_embeddings(vocab_size)
         self.hidden_dim = self.encoder.config.dim
         global SOS_token
