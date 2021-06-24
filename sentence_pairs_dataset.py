@@ -9,8 +9,8 @@ class PairsDS(BaseDataset):
         self.winners = []
         self.losers = []
         super(PairsDS, self).__init__(h_params, file_path)
-        self.winner_ids, self.winner_masks = self.preprocess(self.winners, True)
-        self.loser_ids, self.loser_masks = self.preprocess(self.losers, True)
+        self.winner_ids, self.winner_masks = self.preprocess(self.winners, False)
+        self.loser_ids, self.loser_masks = self.preprocess(self.losers, False)
 
     def read_file(self, file_path):
         with open(file_path, newline='', encoding="UTF-8") as csv_file:
