@@ -41,8 +41,11 @@ class DecoderCell(nn.Module):
         self.lstm = nn.LSTM(input_size=self.input_dim, hidden_size=self.output_dim, num_layers=1,
                             batch_first=True)
 
-    def forward(self, x, prev_hidden):
-        out, inner_state = self.lstm(x, prev_hidden)
+    def forward(self, x, prev_hidden=None):
+        if prev_hidden is None:
+            out, inner_state = self.lstm(x)
+        else:
+            out, inner_state = self.lstm(x, prev_hidden)
         return out, inner_state
 
 
@@ -70,18 +73,18 @@ class Decoder(nn.Module):
     def cell_forward(self, output, encoder_outputs, inner_state):
         embedded = self.embedding_layer(output.to(device)).view(1, 1, -1)
         embedded = self.dropout_layer(embedded)
-        hidden = inner_state[0]
-        attn_weights = F.softmax(
-            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
-        attn_applied = torch.bmm(attn_weights.unsqueeze(0),
-                                 encoder_outputs)
-
-        output = torch.cat((embedded[0], attn_applied[0]), 1)
-        output = self.attn_combine(output).unsqueeze(0)
-        output = F.relu(output)
         if inner_state is None:
-            output, inner_state = self.decoder_call(output)
+            output, inner_state = self.decoder_call(embedded)
         else:
+            hidden = inner_state[0]
+            attn_weights = F.softmax(
+                self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
+            attn_applied = torch.bmm(attn_weights.unsqueeze(0),
+                                     encoder_outputs)
+
+            output = torch.cat((embedded[0], attn_applied[0]), 1)
+            output = self.attn_combine(output).unsqueeze(0)
+            output = F.relu(output)
             output, inner_state = self.decoder_call(output, inner_state)
         return output, inner_state
 
