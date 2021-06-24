@@ -5,8 +5,8 @@ import torch.nn.functional as F
 import torch.utils
 from transformers import DistilBertModel
 
-SOS_token = 32100
-EOS_token = 1
+SOS_token = 102
+EOS_token = 101
 # device = "cuda:0"
 device = "cpu"
 print(device)
@@ -79,13 +79,16 @@ class Decoder(nn.Module):
         output = torch.cat((embedded[0], attn_applied[0]), 1)
         output = self.attn_combine(output).unsqueeze(0)
         output = F.relu(output)
-        output, inner_state = self.decoder_call(output, inner_state)
+        if inner_state is None:
+            output, inner_state = self.decoder_call(output)
+        else:
+            output, inner_state = self.decoder_call(output, inner_state)
         return output, inner_state
 
-    def forward(self, encoder_outputs, len, inner_state, target_tensor, force_learning=True):
+    def forward(self, encoder_outputs, inner_state, target_tensor, force_learning=True):
         outputs = None
         in_word = torch.tensor([[SOS_token]], device=self.device)
-        for i in range(len):
+        for i in range(self.max_len):
             output, inner_state = self.cell_forward(output=in_word, encoder_outputs=encoder_outputs,
                                                     inner_state=inner_state)
             output = self.head(output)
@@ -98,8 +101,6 @@ class Decoder(nn.Module):
             else:
                 topv, topi = output.topk(1)
                 in_word = topi.squeeze().detach()
-                if in_word.item() == EOS_token:
-                    break
         return outputs
 
 
@@ -144,18 +145,16 @@ class BertEncoderDecoder(nn.Module):
         self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
                                hidden_size=self.hidden_dim, dropout=dropout, linear_dim=linear_dim)
 
-    def forward(self, sen, target_tensor, len=None, force_learning=True):
+    def forward(self, sen, target_tensor, force_learning=True):
         encoded_sen = self.encoder(sen.unsqueeze(0))[0]
         # pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
         # encoded_sen = torch.cat((encoded_sen, pad), dim=1)
-        if len is None:
-            len = target_tensor.size(0)
-        inner_state = self.init_inner_state()
-        output = self.decoder(encoded_sen, len, inner_state, target_tensor, force_learning)
+        # inner_state = self.init_inner_state()
+        output = self.decoder(encoded_sen, None, target_tensor, force_learning)
         return output
 
     def init_inner_state(self):
-        return torch.zeros(1, 1, self.hidden_dim, device=device), torch.zeros(1, 1, self.hidden_dim, device=device)
+        return torch.ones(1, 1, self.hidden_dim, device=device), torch.zeros(1, 1, self.hidden_dim, device=device)
 
 
 # model = BertEncoderDecoder(vocab_size=10000, max_len=50)
