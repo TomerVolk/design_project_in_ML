@@ -27,10 +27,10 @@ class LMDataset(BaseDataset):
         labels = torch.zeros_like(ids, dtype=torch.long) - 100
         counter = 0
         for idx, word in enumerate(ids):
-            if int(ids[idx]) == self.tokenizer.pad_token_id:
-                break
-            if int(ids[idx]) == self.tokenizer.cls_token_id or int(ids[idx]) == self.tokenizer.sep_token_id:
-                continue
+            # if int(ids[idx]) == self.tokenizer.pad_token_id:
+            #     break
+            # if int(ids[idx]) == self.tokenizer.cls_token_id or int(ids[idx]) == self.tokenizer.sep_token_id:
+            #     continue
             p = random.random()
             if p < self.h_params.dropout_prob:
                 labels[counter] = int(ids[idx])

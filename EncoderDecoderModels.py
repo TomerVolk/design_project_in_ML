@@ -157,7 +157,7 @@ class BertEncoderDecoder(nn.Module):
         return output
 
     def init_inner_state(self):
-        return torch.zeros(1, 1, self.hidden_dim, device=device), torch.zeros(1, 1, self.hidden_dim, device=device)
+        return torch.ones(1, 1, self.hidden_dim, device=device), torch.ones(1, 1, self.hidden_dim, device=device)
 
 
 # model = BertEncoderDecoder(vocab_size=10000, max_len=50)
