@@ -9,6 +9,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="egor@ieir68.iem.technion.ac.il:22">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="egor@optim-srv1.iem.technion.ac.il:22">
         <serverdata>
           <mappings>

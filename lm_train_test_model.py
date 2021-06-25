@@ -38,19 +38,19 @@ def eval_net(model, test_dataloader):
         for input_seq, _, target_seq in tqdm(test_dataloader, total=len(test_dataloader)):
             target_seq = target_seq.squeeze(0).squeeze(0)
             input_seq = input_seq.squeeze(0).squeeze(0)
-            target_seq = target_seq[target_seq != -100]
-            if torch.numel(target_seq) == 0:
-                failed += 1
-                continue
+            # target_seq = target_seq[target_seq != -100]
+            # if torch.numel(target_seq) == 0:
+            #     failed += 1
+            #     continue
             if device == "cuda:0":
                 target_seq = target_seq.cuda()
                 input_seq = input_seq.cuda()
             pred_seq = model(input_seq, target_seq, force_learning=False)
-            if pred_seq.size(1) != len(target_seq):
-                pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
-                for i in range(len(pad[0])):
-                    pad[0][i][1] = 1
-                pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
+            # if pred_seq.size(1) != len(target_seq):
+            #     pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
+            #     for i in range(len(pad[0])):
+            #         pad[0][i][1] = 1
+            #     pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
             pred_seq = F.log_softmax(pred_seq.squeeze(0))
             acc += ((torch.argmax(pred_seq.cpu(), dim=-1)[0] == target_seq.cpu()).numpy().sum())
             counter += len(target_seq)
@@ -77,20 +77,20 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             # print(f'labels, target: {target_seq}')
             p = True if random.random() > force_training_prob else 0
             target_seq = target_seq.squeeze(0).squeeze(0)
-            target_seq = target_seq[target_seq != -100]
-            if torch.numel(target_seq) == 0:
-                failed += 1
-                continue
+            # target_seq = target_seq[target_seq != -100]
+            # if torch.numel(target_seq) == 0:
+            #     failed += 1
+            #     continue
             if device == "cuda:0":
                 target_seq = target_seq.cuda()
                 input_seq = input_seq.cuda()
-            pred_seq = model(input_seq.squeeze(0).squeeze(0), target_seq, force_learning=p)
+            pred_seq = model(input_seq.squeeze(0).squeeze(0), target_seq, force_learning=False)
             # print(f'Traind: {pred_seq.shape}', target_seq.shape)
-            if pred_seq.size(1) != len(target_seq):
-                pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
-                for j in range(len(pad[0])):
-                    pad[0][j][1] = 1
-                pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
+            # if pred_seq.size(1) != len(target_seq):
+            #     pad = torch.zeros(1, target_seq.size(0)-pred_seq.size(1), pred_seq.size(2), device=device)
+            #     for j in range(len(pad[0])):
+            #         pad[0][j][1] = 1
+            #     pred_seq = torch.cat((pred_seq.to(device), pad), dim=1)
             # print(f'predicted :{torch.argmax(F.log_softmax(pred_seq.squeeze(0)),1)}')
             ls = loss(F.log_softmax(pred_seq.squeeze(0)), target_seq.to(device))
             printable_loss += ls.item()
@@ -109,7 +109,7 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
                     sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(j)
                     sen_to_print = sen_to_print.squeeze(0).squeeze(0)
                     target_sen_to_print = target_sen_to_print.squeeze(0).squeeze(0)
-                    target_sen_to_print = target_sen_to_print[target_sen_to_print != -100]
+                    # target_sen_to_print = target_sen_to_print[target_sen_to_print != -100]
                     if torch.numel(target_sen_to_print) == 0:
                         continue
                     if device == "cuda:0":
@@ -119,10 +119,10 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
                     print(f"Output before: {target_sen_to_print}")
                     pred = model(sen_to_print, target_sen_to_print, force_learning=False)
                     pred_ids = []
-                    for word in pred[0]:
-                        topv, topi = word.topk(1)
-                        in_word = topi.squeeze().detach().item()
-                        pred_ids.append(in_word)
+                    # for word in pred[0]:
+                    #     topv, topi = word.topk(1)
+                    #     in_word = topi.squeeze().detach().item()
+                    #     pred_ids.append(in_word)
                     print(f"Output after: {target_sen_to_print}")
                     print(f"Predicted: {pred_ids}")
                     with open("./results/lm_train.txt", "a") as f:
