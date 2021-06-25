@@ -33,9 +33,9 @@ class LMDataset(BaseDataset):
             #     continue
             p = random.random()
             if p < self.h_params.dropout_prob:
-                labels[counter] = int(ids[idx])
+                labels[idx] = int(ids[idx])
                 ids[idx] = self.tokenizer.mask_token_id
-                counter += 1
+                # counter += 1
         return ids, masks, labels
 
     def __len__(self):
