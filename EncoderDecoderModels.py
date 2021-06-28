@@ -7,8 +7,8 @@ from transformers import DistilBertModel
 
 SOS_token = 102
 EOS_token = 101
-# device = "cuda:0"
-device = "cpu"
+device = "cuda:0"
+# device = "cpu"
 print(device)
 
 
@@ -147,15 +147,17 @@ class BertEncoderDecoder(nn.Module):
         SOS_token = 101
         global EOS_token
         EOS_token = 102
-        self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
-                               hidden_size=self.hidden_dim, dropout=dropout, linear_dim=linear_dim)
+        # self.decoder = Decoder(vocab_size=vocab_size, max_len=max_len, embedding_dim=embedding_dim,
+        #                        hidden_size=self.hidden_dim, dropout=dropout, linear_dim=linear_dim)
+        self.decoder = nn.Linear(self.hidden_dim, self.vocab_size)
 
     def forward(self, sen, target_tensor, force_learning=True):
         encoded_sen = self.encoder(sen.unsqueeze(0))[0]
         # pad = torch.zeros((1, self.max_len-encoded_sen.size(1), self.hidden_dim), device=device)
         # encoded_sen = torch.cat((encoded_sen, pad), dim=1)
         # inner_state = self.init_inner_state()
-        output = self.decoder(encoded_sen, None, target_tensor, force_learning)
+        # output = self.decoder(encoded_sen, None, target_tensor, force_learning)
+        output = self.decoder(encoded_sen.view(-1, self.hidden_dim))
         return output
 
     def init_inner_state(self):
@@ -253,5 +255,4 @@ class DecoderRNN(nn.Module):
 
     def initHidden(self):
         return torch.zeros(1, 1, self.hidden_size, device=device)
-
 ###

@@ -118,7 +118,7 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
                     print(f'sentence ids: {sen_to_print}')
                     print(f"Output before: {target_sen_to_print}")
                     pred = model(sen_to_print, target_sen_to_print, force_learning=False)
-                    pred_ids = []
+                    pred_ids = pred.argmax(dim=1)
                     # for word in pred[0]:
                     #     topv, topi = word.topk(1)
                     #     in_word = topi.squeeze().detach().item()

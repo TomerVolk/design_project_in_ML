@@ -10,6 +10,7 @@ class LMDataset(BaseDataset):
         self.sentences = []
         super(LMDataset, self).__init__(h_params, file_path, base_dataset)
         # self.sentences = self.sentences[:10]
+        # print("Using Only Small DS!!!!!")
         self.ids, self.masks = self.preprocess(self.sentences, False)
         self.vocab_size = self.tokenizer.vocab_size + len(self.tokenizer.added_tokens_encoder)
 
