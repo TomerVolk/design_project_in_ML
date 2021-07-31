@@ -105,6 +105,7 @@ def train_net(model, train_dataloader, test_dataloader=None, epochs=1000, lr=0.0
             print(epoch)
             model.train(False)
             with torch.no_grad():
+
                 for j in range(5):
                     sen_to_print, _, target_sen_to_print = train_dataloader.dataset.__getitem__(j)
                     sen_to_print = sen_to_print.squeeze(0).squeeze(0)

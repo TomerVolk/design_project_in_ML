@@ -132,7 +132,7 @@ class EncoderDecoder(nn.Module):
 
 
 class BertEncoderDecoder(nn.Module):
-    def __init__(self, vocab_size, max_len, embedding_dim=300, dropout=0.2, linear_dim=1500):
+    def __init__(self, vocab_size, max_len, embedding_dim=768, dropout=0.2, linear_dim=1500):
         super(BertEncoderDecoder, self).__init__()
         self.vocab_size = vocab_size
         self.max_len = max_len
