@@ -1,4 +1,5 @@
 import csv
+import pandas as pd
 
 
 def clean_file(in_path, out_path):
@@ -29,6 +30,27 @@ def clean_file(in_path, out_path):
         csv_writer.writerow(["Winner", "Loser", "Topic"])
         for row in ans:
             csv_writer.writerow(row)
+
+
+def flatten_file(in_path, out_path):
+    data = pd.read_csv(in_path, index_col=0)
+    data1 = data.copy()
+    data2 = data1.copy()
+    data1 = data1.drop(columns='Loser').rename(columns={'Winner': 'Argument'})
+    data2 = data2.drop(columns='Winner').rename(columns={'Loser': 'Argument'})
+    data = data1.append(data2)
+    data.drop_duplicates(subset=['Argument'], inplace=True)
+    num_items = data[['Counter', 'Hyper_topic']].groupby('Hyper_topic').count()
+    data.drop(columns=['Counter'], inplace=True)
+    data = data.join(num_items, on='Hyper_topic')
+    data.to_csv(out_path, index=False)
+
+
+def clean_flatten_file(in_path: str):
+    df = pd.read_csv(in_path)
+    df = df.drop_duplicates(subset=['Argument'])
+    out_path = in_path.replace('.csv', ' clean.csv')
+    df.to_csv(out_path)
 
 
 def select_only_over_thresh(in_path, out_path, thresh):
@@ -71,4 +93,6 @@ def select_topics(topics, in_path, out_path):
 
 
 if __name__ == '__main__':
-    select_topics(["Vegetarianism"], "datasets/over_1000.csv", "datasets/single_topic.csv")
+    flatten_file('datasets/clean_dataset.csv', 'datasets/pairs sentences.csv')
+    # clean_flatten_file('datasets/pairs sentences.csv')
+    # select_topics(["Vegetarianism"], "datasets/over_1000.csv", "datasets/single_topic.csv")
