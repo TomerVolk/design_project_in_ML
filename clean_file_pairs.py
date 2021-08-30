@@ -92,7 +92,23 @@ def select_topics(topics, in_path, out_path):
             csv_writer.writerow(row)
 
 
+def read_arg_file(path, out_path):
+    df = pd.read_csv(path)
+    df = df.drop_duplicates(subset=['argument'])
+    df = df.dropna()
+    num_items = df[['topic', 'argument']].groupby('topic').count().rename(columns={'argument': 'count'})
+    df = df.join(num_items, on='topic')
+    df.to_csv('datasets/arg quality with topic counts.csv')
+    num_items.to_csv('datasets/arg quality topic counts.csv')
+    # topics = set(df['topic'].tolist())
+    # topics = sorted(list(topics))
+    # topics_file = pd.DataFrame({'topic': topics})
+    # topics_file.to_csv('datasets/topics names arg quality.csv', index=False)
+    pass
+
+
 if __name__ == '__main__':
-    flatten_file('datasets/clean_dataset.csv', 'datasets/pairs sentences.csv')
+    read_arg_file('datasets/arg_quality_rank_30k.csv', 'datasets/arg quality clean.csv')
+    # flatten_file('datasets/clean_dataset.csv', 'datasets/pairs sentences.csv')
     # clean_flatten_file('datasets/pairs sentences.csv')
     # select_topics(["Vegetarianism"], "datasets/over_1000.csv", "datasets/single_topic.csv")
