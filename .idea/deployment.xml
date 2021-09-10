@@ -1,35 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="student@dpml2020s-0001.eastus.cloudapp.azure.com:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="DL_VM">
+      <paths name="DPML">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="egor@ieir68.iem.technion.ac.il:22">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="egor@optim-srv1.iem.technion.ac.il:22">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="student@dpml2020s-0001.eastus.cloudapp.azure.com:22">
+      <paths name="student@dpml2020s-0001.eastus.cloudapp.azure.com:22 password">
         <serverdata>
           <mappings>
             <mapping deploy="/home/student/project" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
+      <paths name="tomervolk@nlp16.iem.technion.ac.il:22 password">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

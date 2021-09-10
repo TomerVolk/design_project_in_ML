@@ -1,0 +1,90 @@
+Output: tensor([ 3901,    19,     8,  2427, 17102,    11,  9174,    45])
+Predicted: [43, 38, 25074, 1]
+
+Output: tensor([ 365, 2166])
+Predicted: [43, 38]
+
+Output: tensor([11633,     1])
+Predicted: [1]
+
+epoch: 0 	 train loss is 10.368584823608398
+Output: tensor([ 2415,  1121,  6092, 21001,  1103,  1104,  1168,  2116])
+Predicted: [3820, 1116, 1116, 23992, 1116, 23992, 1116, 23992]
+
+Output: tensor([27487])
+Predicted: [3820]
+
+Output: tensor([1104, 1850, 1297])
+Predicted: [3820, 1116, 1116]
+
+Output: tensor([15380])
+Predicted: [3820]
+
+Output: tensor([16609,  7968,  1132,  1741,  4801,  2357])
+Predicted: [3820, 1116, 1116, 23992, 1116, 23992]
+
+epoch: 0 	 train loss is 10.280961142645943
+Output: tensor([  159,  1863,  6092,   185, 21001,  2116])
+Predicted: [1193, 1193, 1193, 1193, 1193, 1193]
+
+Output: tensor([1129])
+Predicted: [1193]
+
+Output: tensor([1234, 1297])
+Predicted: [1193, 1193]
+
+Output: tensor([1116, 1884])
+Predicted: [1193, 1193]
+
+Output: tensor([ 2189, 15710,  1116,  2913,  4801,  3057,  2357])
+Predicted: [1193, 1193, 1193, 1193, 1193, 1193, 1193]
+
+epoch: 0 	 train loss is 10.275187301635743
+Output: tensor([ 1863,  1121, 21001,  5352,  1105, 20723])
+Predicted: [1193, 3724, 3724, 3724, 3724, 3724]
+
+Output: tensor([ 159, 3672])
+Predicted: [1193, 3724]
+
+Output: tensor([5497, 6092, 1111])
+Predicted: [1193, 3724, 3724]
+
+Output: tensor([ 1884, 22293,  2689,  1218,  2266])
+Predicted: [1193, 3724, 3724, 3724, 3724]
+
+Output: tensor([1111, 2332, 4801])
+Predicted: [1193, 3724, 3724]
+
+epoch: 1 	 train loss is 10.210925510951451
+Output: tensor([1863, 1110, 2415, 1121, 6092, 6094, 1168, 5208])
+Predicted: [4231, 12629, 3724, 3724, 3724, 3724, 3724, 3724]
+
+Output: tensor([1336, 3672])
+Predicted: [12629, 3724]
+
+Output: tensor([2408, 6092, 1104, 1850])
+Predicted: [12629, 3724, 3724, 3724]
+
+Output: tensor([ 1884, 13871])
+Predicted: [12629, 3724]
+
+Output: tensor([1116, 1396])
+Predicted: [12629, 3724]
+
+epoch: 0 	 train loss is 10.281373977661133
+Output: tensor([  159, 24279,  6092, 21001,  2343,  1103,  1104,   170,  1104,  3724])
+Predicted: [12629, 3724, 3724, 3724, 3724, 3724, 3724, 3724, 3724, 3724]
+
+Output: tensor([3399, 3672])
+Predicted: [12629, 3724]
+
+Output: tensor([1111])
+Predicted: [12629]
+
+Output: tensor([2689, 1112, 1218, 1112])
+Predicted: [12629, 3724, 3724, 3724]
+
+Output: tensor([ 1116,  2332,  2913,  1741,  1137,  2357, 12629])
+Predicted: [12629, 3724, 3724, 3724, 3724, 3724, 3724]
+
+epoch: 1 	 train loss is 10.253981908162435

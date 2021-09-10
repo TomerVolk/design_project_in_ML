@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="5b0427cf-be16-4067-acd0-830926d38d3f" name="DPML">
+        <fileTransfer rootFolder="/home/student/project" accessType="SFTP" host="dpml2020s-0001.eastus.cloudapp.azure.com" port="22" sshConfigId="6a63cf6b-3a20-4557-a9cf-f3243edfa3a1" sshConfig="student@dpml2020s-0001.eastus.cloudapp.azure.com:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
