@@ -54,9 +54,9 @@ def get_scores_single_sentence(sentence: str, model, vectorizer):
 
     output = model.predict(test_dict, batch_size=1)
 
-    score = output @ METRICS_WEIGHTS
-    score = float(score)
-    return score
+    weighted_score = output @ METRICS_WEIGHTS
+    weighted_score = float(weighted_score)
+    return weighted_score, output
 
 
 def get_scores(sentences, model, vectorizer):
@@ -78,4 +78,5 @@ if __name__ == '__main__':
     ]
     bert, vec = init_evaluator()
     print("created model")
-    get_scores(text, bert, vec)
+    ans = get_scores(text, bert, vec)
+    print(ans)
