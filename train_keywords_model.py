@@ -12,10 +12,11 @@ from t5model import KeyWordGeneration
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 from model_evaluation import init_evaluator, get_scores_single_sentence
+from transformers import T5TokenizerFast
 
 
-def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model, evaluation_vectorizer,
-          epochs=1000, lr=0.0001, ags=150):
+def train(model, train_dataloader, test_dataloader, tokenizer: T5TokenizerFast, evaluation_model, evaluation_vectorizer,
+          epochs=10, lr=0.0001, ags=1):
 
     model.to('cuda:0')
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -53,7 +54,7 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
         #         output_ids = model.eval_forward(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
         #         print(f'Epoch: {epoch} \t Test: Keywords: "{tokenizer.decode(input_ids)}"'
         #               f' \t Sent: "{tokenizer.decode(output_ids[0])}, score: {get_scores_single_sentence(tokenizer.decode(output_ids[0]))}"')
-        if epoch > 8:
+        if epoch > 2:
             model.train(False)
             with torch.no_grad():
                 results_dict = {'w_score': [], 'keywords': [], 'sentence': [], 'epoch': []}
@@ -65,10 +66,10 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
                     attention_mask = attention_mask.cuda()
                     # output_ids = model.eval_forward(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
                     output_ids = model.eval_forward(input_ids, attention_mask)
-                    sent = tokenizer.decode(output_ids[0])
+                    sent = tokenizer.decode(output_ids[0], skip_special_tokens=True)
                     weighted_score, all_scores = get_scores_single_sentence(sent,
                                                        evaluation_model, evaluation_vectorizer)
-                    keywords = tokenizer.decode(input_ids[0])
+                    keywords = tokenizer.decode(input_ids[0], skip_special_tokens=True)
                     results_dict['w_score'].append(float(weighted_score))
                     print(all_scores[0])
                     for i, score in enumerate(all_scores[0]):
@@ -86,8 +87,6 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
         torch.save(model, 'trained_models/keyword_model_with_evaluation_4_scores.pt')
 
 
-
-
 if __name__ == '__main__':
     warnings.filterwarnings("ignore")
 
@@ -96,8 +95,8 @@ if __name__ == '__main__':
     print("created model")
     ds = KeyWordsDataset('datasets/keywords_30k.csv')
     model = KeyWordGeneration()
-    train_lds, val_lds = random_split(ds, [len(ds) - int(0.01 * len(ds)), int(0.01 * len(ds))])
-    train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
+    train_lds, val_lds = random_split(ds, [len(ds) - int(0.1 * len(ds)), int(0.1 * len(ds))])
+    train_dataloader = DataLoader(train_lds, batch_size=16, shuffle=True)
     test_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
 
     with open('datasets/train_dataloader.pt', 'wb') as file:

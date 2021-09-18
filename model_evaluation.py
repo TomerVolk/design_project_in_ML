@@ -18,7 +18,7 @@ YEAR = 'all'
 
 MODEL_PATH = './sumqe/BERT_DUC_{}_{}_{}.h5'.format(YEAR, QUALITY, MODE)
 
-METRICS_WEIGHTS = np.array([0.15, 0.15, 0.15, 0.05, 0.5])
+METRICS_WEIGHTS = np.array([0.5, 0.2, 0, 0.2, 0.1])
 
 
 def init_evaluator():
