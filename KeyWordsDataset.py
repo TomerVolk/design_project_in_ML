@@ -16,7 +16,7 @@ def read_file(file_path):
 class KeyWordsDataset(Dataset):
 
     def __init__(self, file_path):
-        self.tokenizer = T5TokenizerFast.from_pretrained("t5-small")
+        self.tokenizer = T5TokenizerFast.from_pretrained("t5-base")
         read_file(file_path)
         self.sentences, self.keywords = read_file(file_path)
         self.model_sent = self.tokenizer.batch_encode_plus(self.sentences, return_tensors="pt", max_length=128,
