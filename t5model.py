@@ -6,7 +6,7 @@ class KeyWordGeneration(nn.Module):
 
     def __init__(self):
         super(KeyWordGeneration, self).__init__()
-        self.model = T5ForConditionalGeneration.from_pretrained("t5-small")
+        self.model = T5ForConditionalGeneration.from_pretrained("t5-base")
 
     def forward(self, input_ids: Tensor, attention_masks: Tensor, labels: Tensor = None):
         """
