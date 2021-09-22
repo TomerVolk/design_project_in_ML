@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch
 import warnings
 import pandas as pd
+import numpy as np
+import random
 
 
 from KeyWordsDataset import KeyWordsDataset
@@ -12,6 +14,7 @@ from t5model import KeyWordGeneration
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 from model_evaluation import init_evaluator, get_scores_single_sentence
+from utils import set_seed
 
 
 def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model, evaluation_vectorizer,
@@ -85,8 +88,8 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
 
 
 
-
 if __name__ == '__main__':
+    set_seed()
     warnings.filterwarnings("ignore")
 
     # bert, vec = None, None
@@ -94,7 +97,7 @@ if __name__ == '__main__':
     print("created model")
     ds = KeyWordsDataset('datasets/keywords_30k.csv')
     model = KeyWordGeneration()
-    train_lds, val_lds = random_split(ds, [len(ds) - int(0.01 * len(ds)), int(0.01 * len(ds))])
+    train_lds, val_lds = random_split(ds, [len(ds) - int(0.1 * len(ds)), int(0.1 * len(ds))])
     train_dataloader = DataLoader(train_lds, batch_size=1, shuffle=True)
     test_dataloader = DataLoader(val_lds, batch_size=1, shuffle=False)
 

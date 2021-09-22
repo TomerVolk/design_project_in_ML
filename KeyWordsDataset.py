@@ -25,21 +25,19 @@ class KeyWordsDataset(Dataset):
                                                            padding="max_length")
 
     def __getitem__(self, item):
-        # copy_tensor = self.model_keywords['input_ids'][item].clone()
-        # end_of_keywords = (copy_tensor == 1).nonzero(as_tuple=True)[0].item()
-        # perm = torch.randperm(end_of_keywords)
-        # copy_tensor[:end_of_keywords] = copy_tensor[perm]
-        #
-        # return copy_tensor, self.model_keywords["attention_mask"][item],\
-        #        self.model_sent['input_ids'][item]
+        copy_tensor = self.model_keywords['input_ids'][item].clone()
+        end_of_keywords = (copy_tensor == 1).nonzero(as_tuple=True)[0].item()
+        perm = torch.randperm(end_of_keywords-1)
+        copy_tensor[1:end_of_keywords] = copy_tensor[perm]
 
-        # copy_tensor = self.model_keywords['input_ids'][item].clone()
-        # end_of_keywords = (copy_tensor == 1).nonzero(as_tuple=True)[0].item()
-        # perm = torch.randperm(end_of_keywords)
-        # copy_tensor[:end_of_keywords] = copy_tensor[perm]
-
-        return self.model_keywords['input_ids'][item], self.model_keywords["attention_mask"][item], \
+        return copy_tensor, self.model_keywords["attention_mask"][item], \
                self.model_sent['input_ids'][item]
+
+        # print('copy: ', copy_tensor)
+        # print('original: ', self.model_keywords['input_ids'][item])
+
+        # return self.model_keywords['input_ids'][item], self.model_keywords["attention_mask"][item], \
+        #        self.model_sent['input_ids'][item]
 
     def __len__(self):
         return len(self.sentences)
