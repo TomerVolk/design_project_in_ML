@@ -87,7 +87,6 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
         # torch.save(model, 'trained_models/keyword_model_with_evaluation_4_scores_.pt')
 
 
-
 if __name__ == '__main__':
     set_seed()
     warnings.filterwarnings("ignore")
