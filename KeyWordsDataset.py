@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import T5TokenizerFast
 import pandas as pd
+import random
 
 
 def read_file(file_path):
@@ -27,18 +28,26 @@ class KeyWordsDataset(Dataset):
     def __getitem__(self, item):
         # copy_tensor = self.model_keywords['input_ids'][item].clone()
         # end_of_keywords = (copy_tensor == 1).nonzero(as_tuple=True)[0].item()
-        # perm = torch.randperm(end_of_keywords)
-        # copy_tensor[:end_of_keywords] = copy_tensor[perm]
+        # start_of_keywords = (copy_tensor == 10).nonzero(as_tuple=True)[0].item()
         #
-        # return copy_tensor, self.model_keywords["attention_mask"][item],\
+        # perm = torch.randperm(end_of_keywords-start_of_keywords) + start_of_keywords
+        # copy_tensor[start_of_keywords:end_of_keywords] = copy_tensor[perm]
+
+        # return copy_tensor, self.model_keywords["attention_mask"][item], \
+        #        self.model_sent['input_ids'][item]
+        # return self.model_keywords['input_ids'][item], self.model_keywords["attention_mask"][item], \
         #        self.model_sent['input_ids'][item]
 
-        # copy_tensor = self.model_keywords['input_ids'][item].clone()
-        # end_of_keywords = (copy_tensor == 1).nonzero(as_tuple=True)[0].item()
-        # perm = torch.randperm(end_of_keywords)
-        # copy_tensor[:end_of_keywords] = copy_tensor[perm]
+        subject, keywords = self.keywords[item].split(':')
+        keywords = keywords.split(',')
+        random.shuffle(keywords)
+        new_keywords = ':'.join([subject, ','.join(keywords)])
+        encoded_keywords = self.tokenizer.encode_plus(new_keywords, return_tensors="pt", max_length=128,
+                                                           padding="max_length")
+        input_ids = encoded_keywords['input_ids'][0]
+        attention_mask = encoded_keywords['attention_mask'][0]
 
-        return self.model_keywords['input_ids'][item], self.model_keywords["attention_mask"][item], \
+        return input_ids, attention_mask, \
                self.model_sent['input_ids'][item]
 
     def __len__(self):
