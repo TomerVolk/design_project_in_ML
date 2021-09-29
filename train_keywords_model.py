@@ -39,23 +39,6 @@ def train(model, train_dataloader, test_dataloader, tokenizer, evaluation_model,
                 optimizer.zero_grad()
                 print(f'Epoch: {epoch} \t loss: {loss.item()}')
 
-        # with torch.no_grad():
-        #     for j in [10, 50, 100]:
-        #         input_ids, attention_mask, _ = train_dataloader.dataset.__getitem__(j)
-        #         input_ids = input_ids.cuda()
-        #         attention_mask = attention_mask.cuda()
-        #         output_ids = model.eval_forward(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
-        #         print(f'Epoch: {epoch} \t Train: Keywords: "{tokenizer.decode(input_ids)}"'
-        #               f' \t Sent: "{tokenizer.decode(output_ids[0])}"')
-        # with torch.no_grad():
-        #     for j in [10, 50, 100]:
-        #         input_ids, attention_mask, _ = test_dataloader.dataset.__getitem__(j)
-        #         print(input_ids.shape)
-        #         input_ids = input_ids.cuda()
-        #         attention_mask = attention_mask.cuda()
-        #         output_ids = model.eval_forward(input_ids.unsqueeze(0), attention_mask.unsqueeze(0))
-        #         print(f'Epoch: {epoch} \t Test: Keywords: "{tokenizer.decode(input_ids)}"'
-        #               f' \t Sent: "{tokenizer.decode(output_ids[0])}, score: {get_scores_single_sentence(tokenizer.decode(output_ids[0]))}"')
         model.train(False)
         with torch.no_grad():
             results_dict = {'w_score': [], 'keywords': [], 'sentence': [], 'epoch': []}

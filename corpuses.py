@@ -1,7 +1,3 @@
-"""
-Dedicated to doctor professor Oren Kurland
-"""
-
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
